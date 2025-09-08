@@ -5,13 +5,32 @@ services:
     user: root
     privileged: true
     ports:
-      - 2376:2376
+      - "2376:2376"
     volumes:
       - jenkins_data:/var/jenkins_home
       - jenkins_docker_certs:/certs/client
     environment:
       DOCKER_TLS_CERTDIR: "/certs"
-    restart: on-failure
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       jenkins:
         aliases:
@@ -22,8 +41,8 @@ services:
     container_name: jenkins
     user: root
     ports:
-      - 8080:8080
-      - 50000:50000
+      - "8080:8080"
+      - "50000:50000"
     volumes:
       - jenkins_data:/var/jenkins_home
       - jenkins_docker_certs:/certs/client:ro
@@ -31,10 +50,31 @@ services:
       DOCKER_HOST: "tcp://docker:2376"
       DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: "1"
-      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m"
+      TZ: "UTC"
     depends_on:
-      - docker-dind
-    restart: on-failure
+      docker-dind:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - jenkins
 
