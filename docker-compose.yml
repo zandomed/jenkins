@@ -53,7 +53,7 @@ services:
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m"
       JENKINS_OPTS: "--httpPort=8080"
       JENKINS_URL: "https://jenkins.zandome.dev/"
-      TZ: "UTC"
+      TZ: "Europe/Madrid"
       BUILD_URL: "https://jenkins.zandome.dev/"
     depends_on:
       docker-dind:
