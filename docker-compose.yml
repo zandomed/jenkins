@@ -51,6 +51,8 @@ services:
       DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: "1"
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m -Djenkins.model.Jenkins.slaveAgentPort=50000"
+      JENKINS_OPTS: "--httpPort=8080"
+      JENKINS_URL: "https://jenkins.zandome.dev/"
       TZ: "UTC"
       JENKINS_SLAVE_AGENT_PORT: "50000"
     depends_on:
@@ -90,7 +92,7 @@ services:
       DOCKER_HOST: "tcp://docker:2376"
       DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: "1"
-      JENKINS_URL: "http://jenkins-main:8080"
+      JENKINS_URL: "https://jenkins.zandome.dev/"
       JENKINS_AGENT_NAME: "jenkins-agent-1"
       JENKINS_AGENT_WORKDIR: "/home/jenkins/agent"
       TZ: "UTC"
