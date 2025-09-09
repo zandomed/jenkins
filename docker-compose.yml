@@ -36,9 +36,9 @@ services:
         aliases:
           - docker
 
-  jenkins-main:
+  jenkins:
     image: jenkins/jenkins:2.526-jdk21
-    container_name: jenkins-main
+    container_name: jenkins-core
     user: root
     ports:
       - "8080:8080"
@@ -81,9 +81,9 @@ services:
     networks:
       - jenkins
 
-  jenkins-agent:
+  jenkins-agent-1:
     image: jenkins/inbound-agent:latest-jdk21
-    container_name: jenkins-agent
+    container_name: jenkins-agent-1
     user: root
     volumes:
       - jenkins_docker_certs:/certs/client:ro
