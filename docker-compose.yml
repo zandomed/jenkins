@@ -50,11 +50,11 @@ services:
       DOCKER_HOST: "tcp://docker:2376"
       DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: "1"
-      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m -Djenkins.model.Jenkins.slaveAgentPort=50000"
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m"
       JENKINS_OPTS: "--httpPort=8080"
       JENKINS_URL: "https://jenkins.zandome.dev/"
       TZ: "UTC"
-      JENKINS_SLAVE_AGENT_PORT: "50000"
+      BUILD_URL: "https://jenkins.zandome.dev/"
     depends_on:
       docker-dind:
         condition: service_healthy
@@ -62,60 +62,17 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3G
-          cpus: '1.5'
+          memory: 4G
+          cpus: '2.0'
         reservations:
-          memory: 800M
-          cpus: '0.4'
+          memory: 1G
+          cpus: '0.5'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 120s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - jenkins
-
-  jenkins-agent-1:
-    image: jenkins/inbound-agent:latest-jdk21
-    container_name: jenkins-agent-1
-    user: root
-    volumes:
-      - jenkins_docker_certs:/certs/client:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      DOCKER_HOST: "tcp://docker:2376"
-      DOCKER_CERT_PATH: "/certs/client"
-      DOCKER_TLS_VERIFY: "1"
-      JENKINS_URL: "https://jenkins.zandome.dev/"
-      JENKINS_AGENT_NAME: "jenkins-agent-1"
-      JENKINS_AGENT_WORKDIR: "/home/jenkins/agent"
-      TZ: "UTC"
-    depends_on:
-      jenkins:
-        condition: service_healthy
-      docker-dind:
-        condition: service_healthy
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
-    healthcheck:
-      test: ["CMD", "pgrep", "-f", "jenkins-agent"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
     logging:
       driver: "json-file"
       options:
