@@ -36,9 +36,9 @@ services:
         aliases:
           - docker
 
-  jenkins:
+  jenkins-main:
     image: jenkins/jenkins:2.526-jdk21
-    container_name: jenkins
+    container_name: jenkins-main
     user: root
     ports:
       - "8080:8080"
@@ -50,8 +50,9 @@ services:
       DOCKER_HOST: "tcp://docker:2376"
       DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: "1"
-      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m"
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Xmx1g -XX:MaxMetaspaceSize=512m -Djenkins.model.Jenkins.slaveAgentPort=50000"
       TZ: "UTC"
+      JENKINS_SLAVE_AGENT_PORT: "50000"
     depends_on:
       docker-dind:
         condition: service_healthy
@@ -59,17 +60,60 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
-          cpus: '2.0'
+          memory: 3G
+          cpus: '1.5'
         reservations:
-          memory: 1G
-          cpus: '0.5'
+          memory: 800M
+          cpus: '0.4'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/login"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - jenkins
+
+  jenkins-agent:
+    image: jenkins/inbound-agent:latest-jdk21
+    container_name: jenkins-agent
+    user: root
+    volumes:
+      - jenkins_docker_certs:/certs/client:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: "1"
+      JENKINS_URL: "http://jenkins-main:8080"
+      JENKINS_AGENT_NAME: "jenkins-agent-1"
+      JENKINS_AGENT_WORKDIR: "/home/jenkins/agent"
+      TZ: "UTC"
+    depends_on:
+      jenkins-main:
+        condition: service_healthy
+      docker-dind:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "jenkins-agent"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
