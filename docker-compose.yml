@@ -97,7 +97,7 @@ services:
       JENKINS_AGENT_WORKDIR: "/home/jenkins/agent"
       TZ: "UTC"
     depends_on:
-      jenkins-main:
+      jenkins-core:
         condition: service_healthy
       docker-dind:
         condition: service_healthy
