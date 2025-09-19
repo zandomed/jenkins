@@ -37,7 +37,7 @@ services:
           - docker
 
   jenkins:
-    image: jenkins/jenkins:2.527-jdk21
+    image: jenkins/jenkins:2.528-jdk21
     container_name: jenkins-core
     user: root
     ports:
